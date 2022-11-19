@@ -56,5 +56,22 @@ app.post("/cadastro", async (req,res)=>{
     }
 })
 
+app.post("/", async (req, res)=>{
+    const { email, password } = req.body;
+    try{
+        const userExists = await userCollection.findOne({ email });
+        if(!userExists){
+            return res.sendStatus(401).send({message: "E-mail não cadastrado"})
+        }
+    
+        const samePassword = bcrypt.compareSync(password, userExists.password)
 
+        if(!samePassword){
+            return res.sendStatus(401).send({message: "Senha incorreta"})
+        }
+    res.send(200)
+    }catch(err){
+        res.sendStatus(500).send(err);
+    }
+});
 app.listen(5000, ()=> console.log("server running in port 5000"));
