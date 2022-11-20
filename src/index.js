@@ -112,14 +112,18 @@ app.get("/carteira", async (req, res)=>{
             return res.sendStatus(401);
         }
 
-        delete user.password;
+        const usuario = user._id;
 
-        res.send(user)
+        const transitions = await db.collection("transitions").find({userId: usuario}).toArray();
+        
+        /*const userTransitions = transitions.filter(
+            (t)=> t.userId === usuario
+        );*/
+
+        res.send(transitions);
     }catch(err){
         res.sendStatus(500)
     }
-
-    res.send(posts);
 })
 
 app.post("/entrada", async(req,res)=>{
