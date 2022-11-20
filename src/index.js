@@ -5,12 +5,17 @@ import dotenv from 'dotenv';
 import { MongoClient } from "mongodb";
 import bcrypt from 'bcrypt';
 import {v4 as uuidV4} from 'uuid';
+import dayjs from 'dayjs';
 
 const userSchema = joi.object({
     name: joi.string().required().min(3).max(100),
     password: joi.string().required(),
     email: joi.string().email().required(),
     check: joi.string().required()
+})
+const transationsSchema = joi.object({
+    value: joi.string().required().min(1),
+    description: joi.string().required().min(1),
 })
 
 const app = express();
@@ -92,11 +97,6 @@ app.post("/", async (req, res)=>{
 });
 
 app.get("/carteira", async (req, res)=>{
-    const posts = [
-        {value: "3", type: "exit"},
-        {value: "2", type: "input"},
-    ];
-
     const { authorization } = req.headers;
     const token = authorization?.replace("Bearer ", "");
 
@@ -114,12 +114,53 @@ app.get("/carteira", async (req, res)=>{
 
         delete user.password;
 
-        res.send({posts, user})
+        res.send(user)
     }catch(err){
         res.sendStatus(500)
     }
 
     res.send(posts);
+})
+
+app.post("/entrada", async(req,res)=>{
+    const {value, description} = req.body;
+
+    const { authorization } = req.headers;
+    const token = authorization?.replace("Bearer ", "");
+
+    if(!token){
+        return res.sendStatus(401);
+    }
+
+    const validation = transationsSchema.validate(req.body, {abortEarly:false});
+
+    if(validation.error){
+        const errors = validation.error.details.map((detail)=>detail.message);
+        res.status(422).send(errors);
+        console.log(errors);
+        return;
+    }
+    try{
+        const session = await db.collection("sessions").findOne({token})
+        const user = await userCollection.findOne({_id: session?.userId})
+
+        if(!user){
+            return res.sendStatus(401);
+        }
+
+        const transition ={
+            userId: user._id,
+            value,
+            type: "entrada",
+            description,
+            day: dayjs().format('DD/MM')
+        }
+        await db.collection("transitions").insertOne(transition);
+        res.send(transition);
+    }catch(err){
+        res.sendStatus(500);
+    }
+
 })
 
 app.listen(5000, ()=> console.log("server running in port 5000"));
