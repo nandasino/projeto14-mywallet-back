@@ -4,6 +4,7 @@ import joi from 'joi';
 import dotenv from 'dotenv';
 import { MongoClient } from "mongodb";
 import bcrypt from 'bcrypt';
+import {v4 as uuidV4} from 'uuid';
 
 const userSchema = joi.object({
     name: joi.string().required().min(3).max(100),
@@ -58,6 +59,9 @@ app.post("/cadastro", async (req,res)=>{
 
 app.post("/", async (req, res)=>{
     const { email, password } = req.body;
+
+    const token = uuidV4();
+
     try{
         const userExists = await userCollection.findOne({ email });
         if(!userExists){
@@ -69,9 +73,47 @@ app.post("/", async (req, res)=>{
         if(!samePassword){
             return res.sendStatus(401).send({message: "Senha incorreta"})
         }
-    res.send(200)
+
+        await db.collection("sessions").insertOne({
+            token,
+            userId: userExists._id
+        })
+        
+        res.send({token})
     }catch(err){
         res.sendStatus(500).send(err);
     }
 });
+
+app.get("/carteira", async (req, res)=>{
+    const posts = [
+        {value: "3", type: "exit"},
+        {value: "2", type: "input"},
+    ];
+
+    const { authorization } = req.headers;
+    const token = authorization?.replace("Bearer ", "");
+
+    if(!token){
+        return res.sendStatus(401);
+    }
+
+    try{
+        const session = await db.collection("sessions").findOne({token})
+        const user = await userCollection.findOne({_id: session?.userId})
+
+        if(!user){
+            return res.sendStatus(401);
+        }
+
+        delete user.password;
+
+        res.send({posts, user})
+    }catch(err){
+        res.sendStatus(500)
+    }
+
+    res.send(posts);
+})
+
 app.listen(5000, ()=> console.log("server running in port 5000"));
