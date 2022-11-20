@@ -10,6 +10,7 @@ const userSchema = joi.object({
     name: joi.string().required().min(3).max(100),
     password: joi.string().required(),
     email: joi.string().email().required(),
+    check: joi.string().required()
 })
 
 const app = express();
@@ -37,7 +38,7 @@ app.post("/cadastro", async (req,res)=>{
         });
 
         if(userExists){
-            return res.sendStatus(409).send({message: "Esse e-mail já é cadastrado!"});
+            return res.sendStatus(401).send({message: "Esse e-mail já é cadastrado!"});
         }
 
         const {error} = userSchema.validate(user, {abortEarly: false});
@@ -47,7 +48,12 @@ app.post("/cadastro", async (req,res)=>{
         return res.status(400).send(errors);
         }
 
+        if(user.password!== user.check){
+            return res.sendStatus(401).send({message: "senhas diferentes"});
+        }
+
         const hashPassword = bcrypt.hashSync(user.password, 10);
+        delete user.check;
 
         await userCollection.insertOne({...user, password : hashPassword});
         res.sendStatus(201);

@@ -20,6 +20,7 @@
   "homepage": "https://github.com/nandasino/projeto14-mywallet-back#readme",
   "dependencies": {
     "bcrypt": "^5.1.0",
+    "context": "^3.0.4",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
