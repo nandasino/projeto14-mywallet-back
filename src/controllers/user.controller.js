@@ -1,4 +1,4 @@
-import {userSchema} from "../index.js"
+import {userSchema} from "../models/user.model.js"
 import bcrypt from 'bcrypt';
 import {v4 as uuidV4} from 'uuid';
 import {userCollection, sessionsCollection} from "../database/db.js"
