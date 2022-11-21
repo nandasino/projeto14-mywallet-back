@@ -1,5 +1,6 @@
-import {sessionsCollection, transationsSchema, transitionsCollection, userCollection} from "../index.js"
+import {transationsSchema} from "../index.js"
 import dayjs from 'dayjs';
+import { userCollection, sessionsCollection, transitionsCollection } from "../database/db.js"
 
 async function getCarteira (req, res){
     const { authorization } = req.headers;

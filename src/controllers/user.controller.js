@@ -1,6 +1,7 @@
-import {userSchema, userCollection, sessionsCollection} from "../index.js"
+import {userSchema} from "../index.js"
 import bcrypt from 'bcrypt';
 import {v4 as uuidV4} from 'uuid';
+import {userCollection, sessionsCollection} from "../database/db.js"
 
 async function postCadastro(req,res){
     const user = req.body;
