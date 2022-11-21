@@ -85,12 +85,15 @@ app.post("/", async (req, res)=>{
             return res.sendStatus(401).send({message: "Senha incorreta"})
         }
 
-        await db.collection("sessions").insertOne({
+        const session = {
             token,
-            userId: userExists._id
-        })
+            userId: userExists._id,
+            name: userExists.name,
+        }
+
+        await db.collection("sessions").insertOne(session)
         
-        res.send({token})
+        res.send(session)
     }catch(err){
         res.sendStatus(500).send(err);
     }
@@ -147,12 +150,14 @@ app.post("/entrada", async(req,res)=>{
     try{
         const session = await db.collection("sessions").findOne({token})
         const user = await userCollection.findOne({_id: session?.userId})
+        const nome = await db.collection("users").findOne({_id: user._id})
 
         if(!user){
             return res.sendStatus(401);
         }
 
         const transition ={
+            name: nome.name,
             userId: user._id,
             value,
             type: "entrada",
@@ -166,5 +171,48 @@ app.post("/entrada", async(req,res)=>{
     }
 
 })
+app.post("/saida", async(req,res)=>{
+    const {value, description} = req.body;
+
+    const { authorization } = req.headers;
+    const token = authorization?.replace("Bearer ", "");
+
+    if(!token){
+        return res.sendStatus(401);
+    }
+
+    const validation = transationsSchema.validate(req.body, {abortEarly:false});
+
+    if(validation.error){
+        const errors = validation.error.details.map((detail)=>detail.message);
+        res.status(422).send(errors);
+        console.log(errors);
+        return;
+    }
+    try{
+        const session = await db.collection("sessions").findOne({token})
+        const user = await userCollection.findOne({_id: session?.userId})
+        const nome = await db.collection("users").findOne({_id: user._id})
+
+        if(!user){
+            return res.sendStatus(401);
+        }
+
+        const transition ={
+            name: nome.name,
+            userId: user._id,
+            value,
+            type: "saida",
+            description,
+            day: dayjs().format('DD/MM')
+        }
+        await db.collection("transitions").insertOne(transition);
+        res.send(transition);
+    }catch(err){
+        res.sendStatus(500);
+    }
+
+})
+
 
 app.listen(5000, ()=> console.log("server running in port 5000"));
