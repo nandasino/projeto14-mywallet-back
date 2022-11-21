@@ -59,7 +59,7 @@ async function postEntrada(req,res){
             value,
             type: "entrada",
             description,
-            day: dayjs().format('DD/MM')
+            day: dayjs().format('DD/MM'),
         }
         await transitionsCollection.insertOne(transition);
         res.send(transition);
@@ -107,6 +107,7 @@ async function postSaida(req,res){
     }
 
 }
+
 
 export{
     getCarteira,
