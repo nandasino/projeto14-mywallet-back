@@ -2,9 +2,8 @@ import express, { application } from 'express';
 import cors from 'cors';
 import joi from 'joi';
 
-
-import { postCadastro, postLogin } from './controllers/user.controller.js';
-import { getCarteira, postEntrada, postSaida } from './controllers/transitions.controller.js';
+import userRouters from "./routes/user.routes.js"
+import transitionsRouters from "./routes/transitions.routes.js"
 
 export const userSchema = joi.object({
     name: joi.string().required().min(3).max(100),
@@ -23,14 +22,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post("/cadastro", postCadastro)
-
-app.post("/", postLogin);
-
-app.get("/carteira", getCarteira)
-
-app.post("/entrada", postEntrada )
-
-app.post("/saida", postSaida)
+app.use(userRouters);
+app.use(transitionsRouters);
 
 app.listen(5000, ()=> console.log("server running in port 5000"));
