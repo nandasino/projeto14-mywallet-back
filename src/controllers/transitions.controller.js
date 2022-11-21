@@ -2,13 +2,11 @@ import {transationsSchema} from "../index.js"
 import dayjs from 'dayjs';
 import { userCollection, sessionsCollection, transitionsCollection } from "../database/db.js"
 
+
 async function getCarteira (req, res){
+
     const { authorization } = req.headers;
     const token = authorization?.replace("Bearer ", "");
-
-    if(!token){
-        return res.sendStatus(401);
-    }
 
     try{
         const session = await sessionsCollection.findOne({token})
@@ -37,10 +35,6 @@ async function postEntrada(req,res){
 
     const { authorization } = req.headers;
     const token = authorization?.replace("Bearer ", "");
-
-    if(!token){
-        return res.sendStatus(401);
-    }
 
     const validation = transationsSchema.validate(req.body, {abortEarly:false});
 
@@ -80,10 +74,6 @@ async function postSaida(req,res){
 
     const { authorization } = req.headers;
     const token = authorization?.replace("Bearer ", "");
-
-    if(!token){
-        return res.sendStatus(401);
-    }
 
     const validation = transationsSchema.validate(req.body, {abortEarly:false});
 
